@@ -844,3 +844,20 @@ t.test('has false for pending fetch without stale val', async t => {
     t.equal(c.has(1), true)
   }
 })
+
+
+t.test('should not throw an error when fetching while clearing', async t=> {
+  const cache = new LRUCache<number, number>({
+    max: 10,
+    fetchMethod: async (key: number) =>
+      new Promise<number>(r => setTimeout(() => r(key), 10)),
+  })
+  const exposed = expose(cache);
+  const valuePromise = cache.fetch(1)
+
+  cache.clear()
+  clock.advance(10)
+  const res = await valuePromise
+  t.equal(res, 1)
+  t.equal(cache.has(1), false)
+})
